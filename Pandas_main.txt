@@ -1,0 +1,192 @@
+% Pandas documentation and examples -
+
+% df - data frame
+import pandas as pd
+df=pd.DataFrame()
+
+% We can pass entire dictionary to data frame and keys are columns and values are column entries
+df1 = pd.DataFrame({ 'Product ID': [1, 2, 3, 4], 'Product Name':['t-shirt','t-shirt','skirt','skirt'], 'Color':['blue','green','red','black']})
+%Columns of df in alphabetical order
+
+%To display df1
+print df1/ print(df1)
+
+%We can also pass data to df as rows via making a list of lists, use columns keyword to define column names
+df2 = pd.DataFrame([	[1, 'San Diego', 100], [2, 'Los Angeles', 120], [3,'San Francisco',90], [4,'Sacramento',115]	], columns=['Store ID','Location','Number of Employees'])
+
+%Read from csv
+df=pd.read_csv('file_name.csv')
+
+%Write to csv
+df=pd.to_csv('filename.csv')
+
+%Inspect df after loading data from csv
+print(df.head(n)) - Content upto n rows, default for 5 rows	
+print(df.info()) - Bytes of data, number of columns, data contents etc.	
+print(type(df)) - Data Frame
+print(type(df['age'])) - Series
+
+%Selecting a single column from a df
+variable = df['column'] - This generates a series of that particular column of the df
+
+%Selecting multiple columns from a df
+clinic_north_south = df[['clinic_north','clinic_south']] - Resultant is also a df
+
+%To access a single rows
+variable = df.loc[i] - i is index of rows staring at 0
+
+%To access multiple rows
+variable = df.loc[:i] or [i:] or [i1:i2]
+
+%Also subsets of df can be accessed via logical operations >,<,==,!=, |, &,isin
+january = df[df.month == 'January']
+march_april = df[(df.month == 'March')|(df.month =='April')]
+df[df.month.isin(['January','February','March'])]
+
+%Reset indices of subset df
+df.reset_index(drop=True,inplace=True)
+
+%Add new columns by simply naming them with df
+df['new column'] = [list of strings/int/other data types]
+
+%If all the rows have same values for a column
+df['Is taxed?'] = 'Yes' - All rows get same values
+
+%Generating new column using existing column entries
+df['Sales Tax'] = df.Price * 0.075
+
+%Using apply keyword while creating columns
+from string import upper
+df['Name'] = df.Name.apply(upper)
+
+%Using lambda functions
+mylambda = lambda x: x[0]+x[-1] %lambda keyword, x - temp variable, returns value after :
+print(mylambda('Hello World'))
+
+%lambda functions and if-else looping
+
+lambda x: [OUTCOME IF TRUE] \
+    if [CONDITIONAL] \
+    else [OUTCOME IF FALSE]
+	
+eg. import codecademylib
+mylambda = lambda x: 'Welcome to BattleCity!'\
+if x>13 \
+else 'You must be over 13'
+print(mylambda(19))
+
+
+%Using split function to split string
+lambda x:x.split(' ')[-1] - Split between space and last char
+eg. get_last_name = lambda x:x.split(' ')[-1]
+	df['last_name'] = df.name.apply(get_last_name)
+	
+lambda x: x.split('@')[-1] - Split between @ and last char
+
+
+%Alternate way of creating a new column is via rows and lambda function
+total_earned = lambda row: (row.hourly_wage * 40) + ((row.hourly_wage * 1.5) * (row.hours_worked - 40)) \ 
+if row.hours_worked > 40 \
+else row.hourly_wage * row.hours_worked
+  
+df['total_earned'] = df.apply(total_earned, axis = 1) - row and axis signify column created via multiple existing columns
+
+
+%Renaming columns - All at once
+df.columns=['ID','Title','Category','Year Released','Rating'] - df.columns alters the column in df
+
+%Renaming column one at a time
+rename keyword, pass in a dictionary, old names as keys and new ones as values
+df.rename(columns={'name':'movie_title'},inplace=True)
+
+%Important
+orders['shoe_source'] = orders.shoe_material.apply(lambda x: 'animal' if x == 'leather' else 'vegan')
+
+mylambda = lambda row: \
+  'Dear Mr. {}'.format(row.last_name) \
+  if row.gender == 'male' \
+  else 'Dear Ms. {}'.format(row.last_name)
+
+orders['salutation'] = orders.apply(mylambda,axis=1)
+
+%The following lambda function combines product_type and product_description (i.e. two different columns' data) into a single string:
+combine_lambda = lambda row: '{} - {}'.format(row.product_type, row.product_description)
+
+
+%Aggregates
+
+
+%General syntax for calculating single column aggregates
+df.column_name.command()
+
+%Some common commands-
+mean, std, median, max, min, count, unique, nunique
+
+%General syntax for calculating aggregates after grouping
+df.groupby('column1').column2.measurement() - A series
+df.groupby('column1').column2.measurement().reset_index() - A dataframe
+
+%We can change column names by previously discussed techniques
+
+%Syntax to calculate complicated values like percentile using apply and lambda function
+% np.percentile can calculate any percentile over an array of values
+	high_earners = df.groupby('category').wage.apply(lambda x: np.percentile(x, 75)).reset_index()
+where apply(lambda x: np.percentile(x, 75)) gives 75% percentile
+
+cheap_shoes = orders.groupby('shoe_color').price.apply(lambda x: np.percentile(x,25)).reset_index()
+
+
+%Pivoting tables/df - 
+	df.pivot(columns='ColumnToPivot',
+	index='ColumnToBeRows',
+	values='ColumnToBeValues')
+shoe_counts.pivot(columns='shoe_color',index='shoe_type', values='id').reset_index()
+
+%Important - Percentage; True and False are values in clicks_pivot column in pivot table
+clicks_pivot['precent_clicked'] = clicks_pivot[True]/\
+(clicks_pivot[True]+clicks_pivot[False])
+
+%Important - To check if a value for column is null or not and then processing
+ad_clicks['is_click']=~ad_clicks.ad_click_timestamp.isnull() - Checks if timestamp is null or not. Then assigns True or False value
+
+
+
+%Multiple Tables
+
+
+
+%Merging tables/df
+new_df = pd.merge(orders, customers)
+		(or)
+new_df = orders.merge(customers)
+
+%In order to avoid ambiguity in merging tables, we rename several columns like ID
+pd.merge(orders, customers.rename(columns={'id': 'customer_id'})) - Merging on specific columns
+
+%Alternative
+pd.merge(
+    orders,
+    customers,
+    left_on='customer_id',
+    right_on='id',
+    suffixes=['_order', '_customer'])
+
+eg. orders_products = pd.merge(orders,products,left_on ='customer_id',right_on='id',suffixes=['_orders','_products'])
+
+%When we merge two DataFrames whose rows don't match perfectly, we lose the unmatched rows.
+%Solution is - Outer Join
+pd.merge(company_a, company_b, how='outer')
+
+%Left Join
+
+store_a_b_left = store_a.merge(store_b,how='left') - contents of store a not available in store b will also be displayed
+store_b_a_left = store_b.merge(store_a,how='left') - contents of store b not available in store a will also be displayed
+
+%Concatenate df
+pd.concat([df1, df2, df3]) - number of columns in each df should be the same
+
+%Important - checking for null values
+null_rows = visits_cart[visits_cart.cart_time.isnull()]
+
+% Filling null values with 'No Intervention'
+df.fillna('No Intervention', inplace = True)
